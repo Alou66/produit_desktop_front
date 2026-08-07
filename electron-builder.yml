@@ -1,0 +1,46 @@
+appId: com.produitdesktop.app
+productName: Produit Desktop
+directories:
+  output: dist
+  buildResources: build
+
+# Only out/** (compiled main/preload/renderer) and node_modules are needed at
+# runtime — electron/, src/, scripts/ and config files are dev-only sources
+# already compiled into out/ by `electron-vite build`.
+files:
+  - out/**/*
+  - package.json
+  - '!electron/**'
+  - '!src/**'
+  - '!scripts/**'
+  - '!public/**'
+  - '!*.config.{js,ts,mjs,cjs}'
+  - '!electron.vite.config.{js,ts,mjs,cjs}'
+  - '!tsconfig*.json'
+  - '!components.json'
+  - '!.env*'
+  - '!README.md'
+
+# better-sqlite3 ships a native .node binary that cannot be loaded from
+# inside the asar archive — it must be extracted to app.asar.unpacked.
+asarUnpack:
+  - '**/*.node'
+
+linux:
+  target:
+    - AppImage
+  category: Office
+  maintainer: dialloalassanead6@gmail.com
+
+win:
+  target:
+    - nsis
+
+mac:
+  target:
+    - dmg
+  category: public.app-category.business
+
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
