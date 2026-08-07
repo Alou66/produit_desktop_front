@@ -37,9 +37,14 @@ jobs:
         if: runner.os == 'Windows'
         run: npm run dist:win
 
+      - name: Zip win-unpacked (Windows)
+        if: runner.os == 'Windows'
+        run: Compress-Archive -Path dist/win-unpacked/* -DestinationPath dist/win-unpacked.zip
+
       - uses: actions/upload-artifact@v4
         with:
           name: build-${{ matrix.os }}
           path: |
             dist/*.AppImage
             dist/*.exe
+            dist/win-unpacked.zip
