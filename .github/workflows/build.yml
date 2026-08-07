@@ -1,0 +1,45 @@
+name: Build Desktop App
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Create .env file (Linux)
+        if: runner.os == 'Linux'
+        run: echo 'MAIN_VITE_API_URL="https://produit-desktop.onrender.com/api"' > .env
+
+      - name: Create .env file (Windows)
+        if: runner.os == 'Windows'
+        run: echo 'MAIN_VITE_API_URL="https://produit-desktop.onrender.com/api"' | Out-File -FilePath .env -Encoding utf8
+
+      - run: npm install
+
+      - name: Build Linux
+        if: runner.os == 'Linux'
+        run: npm run dist:linux
+
+      - name: Build Windows
+        if: runner.os == 'Windows'
+        run: npm run dist:win
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: build-${{ matrix.os }}
+          path: |
+            dist/*.AppImage
+            dist/*.exe
