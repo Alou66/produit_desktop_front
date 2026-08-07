@@ -4,6 +4,17 @@ directories:
   output: dist
   buildResources: build
 
+# @powersync/node resolves its native extension path via `import.meta.url`
+# relative to its own (packed) JS file, then hands that string straight to
+# better-sqlite3's loadExtension(), which does a raw OS-level dlopen() on it.
+# dlopen() has no notion of asar — it needs a real path — so even with
+# asarUnpack correctly extracting the .so/.dll/.dylib to app.asar.unpacked,
+# the computed path still points inside the (non-directory) app.asar file
+# and the load fails with "N'est pas un dossier". Rather than patching
+# @powersync/node's worker wiring, asar is disabled outright: every file
+# ships as a plain file on disk, so every path — computed or not — is real.
+asar: false
+
 # Only out/** (compiled main/preload/renderer) and node_modules are needed at
 # runtime — electron/, src/, scripts/ and config files are dev-only sources
 # already compiled into out/ by `electron-vite build`.
@@ -21,10 +32,17 @@ files:
   - '!.env*'
   - '!README.md'
 
-# better-sqlite3 ships a native .node binary that cannot be loaded from
-# inside the asar archive — it must be extracted to app.asar.unpacked.
-asarUnpack:
-  - '**/*.node'
+# asar: false above makes asarUnpack obsolete — every file already sits on
+# disk in the clear, so there is no archive to unpack from. Kept here for
+# context in case asar packing is ever reintroduced (e.g. if @powersync/node
+# gains proper asar-aware path resolution upstream), in which case at least
+# this list would need to be restored:
+# asarUnpack:
+#   - '**/*.node'
+#   - '**/*.so'
+#   - '**/*.dll'
+#   - '**/*.dylib'
+#   - '**/node_modules/@powersync/node/**'
 
 linux:
   target:
